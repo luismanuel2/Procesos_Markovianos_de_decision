@@ -47,14 +47,15 @@ end
 % --- Executes just before main is made visible.
 function main_OpeningFcn(hObject, eventdata, handles, varargin)
 
-% global es de trans  costos estados_validos_2;
+% global es de trans  costos estados_validos_2 desc;
 % es=4;
 % trans=[0 7/8 1/16 1/16;0 3/4 1/8 1/8;0 0 1/2 1/2;0 0 0 0];
 % trans(:,:,2)=[0 0 0 0;0 0 0 0;0 1 0 0;0 0 0 0];
 % trans(:,:,3)=[0 0 0 0;1 0 0 0;1 0 0 0;1 0 0 0];
 % costos=[0 NaN NaN;1000 NaN 6000;3000 4000 6000;NaN NaN 6000];
 % estados_validos_2=[1,1,1,3;1,3,1,3;1,1,2,3;1,3,2,3;1,1,3,3;1,3,3,3];
-% [strpol]=mejoramiento_pol();
+% desc=0.9;
+% mejoramiento_desc() 
 
 set(handles.uitable3,'Visible','off');
 set(handles.uitable2,'Visible','off');

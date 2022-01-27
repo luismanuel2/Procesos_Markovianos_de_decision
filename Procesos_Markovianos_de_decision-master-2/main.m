@@ -47,14 +47,18 @@ end
 % --- Executes just before main is made visible.
 function main_OpeningFcn(hObject, eventdata, handles, varargin)
 
-% global es de trans  costos estados_validos_2;
+% global es de trans  costos estados_validos_2 desc ite;
 % es=4;
 % trans=[0 7/8 1/16 1/16;0 3/4 1/8 1/8;0 0 1/2 1/2;0 0 0 0];
 % trans(:,:,2)=[0 0 0 0;0 0 0 0;0 1 0 0;0 0 0 0];
 % trans(:,:,3)=[0 0 0 0;1 0 0 0;1 0 0 0;1 0 0 0];
 % costos=[0 NaN NaN;1000 NaN 6000;3000 4000 6000;NaN NaN 6000];
 % estados_validos_2=[1,1,1,3;1,3,1,3;1,1,2,3;1,3,2,3;1,1,3,3;1,3,3,3];
-% [strpol]=mejoramiento_pol();
+% desc=0.9;
+% ite=2;
+% [nstr,vtr,strpol,pol]=aprox_sucesivas();
+
+
 
 set(handles.uitable3,'Visible','off');
 set(handles.uitable2,'Visible','off');
@@ -616,15 +620,15 @@ end
 vstr='';
 for i=1:length(sol)
     if i==1
-        vstr=['V(R)=' num2str(sol(i))];
+        vstr=['V' num2str(i-1) '=' num2str(sol(i))];
     else
-        vstr=[vstr ', V' num2str(i-2) '=' num2str(sol(i))];
+        vstr=[vstr ', V' num2str(i-1) '=' num2str(sol(i))];
     end
 end
 strpol=['P=' pol_str(pol)];
 nstr=num2str(n);
 
-function [nstr,vtr,strpol,pol]=aprox_sucesivas()
+function [nstr,vstr,strpol,pol]=aprox_sucesivas()
 global es de trans ite desc  costos estados_validos_2;
 
 pol=[];
@@ -632,35 +636,38 @@ sol=[];
 V=[];
 
 n=1;
-[V,I]=min(costos(1,:))
-while n <= ite
+[V,I]=min(costos,[],2)
+while n < ite
+    Vant=V;
+    V=[];
+    pol=[];
     n=n+1;
       for i=1:es
-        V=[];
+        mini=[];
         un=unique(estados_validos_2(:,i));
         for u=1:length(un)
             j=un(u);
             cos=costos(i,j);
             for k=1:es
-                cos=cos+desc*(trans(i,k,j)*v(k)); %costo
-            end
-           
-            V=[V,[cos;j]];
+                cos=cos+desc*(trans(i,k,j)*Vant(k)); %costo
+            end      
+            mini=[mini,[cos;j]];
         end
         %costo minimo y cambio de decision
-        [val,I]=min(V(1,:));
-        pol=[pol,V(2,I)];
+        [val,I]=min(mini(1,:));
+        V=[V,mini(1,I)];
+        pol=[pol,mini(2,I)];
       end
-     sol=[];
+      pol
 end
-
+pol
 %convertir todo a char
 vstr='';
-for i=1:length(sol)
+for i=1:length(V)
     if i==1
-        vstr=['=' num2str(sol(i))];
+        vstr=['V' num2str(i) '=' num2str(V(i))];
     else
-        vstr=[vstr ', V' num2str(i-2) '=' num2str(sol(i))];
+        vstr=[vstr ', V' num2str(i) '=' num2str(V(i))];
     end
 end
 strpol=['P=' pol_str(pol)];
@@ -715,7 +722,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function most_dat(imp_res)
+
 
 
 % --- Executes on button press in pushbutton3.
@@ -723,7 +730,7 @@ function pushbutton3_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global estados_validos_2 estados_validos pop  desc ite es estados decisiones ;
+global estados_validos_2 estados_validos pop  desc ite es estados decisiones trans;
 cel=get(handles.uitable4,'Data');
 %se queda solo con las politicas escogidas
 eli=find(~cell2mat(cel(:,2)'));
@@ -731,7 +738,7 @@ estados_validos_2=estados_validos;
 estados_validos_2(eli,:)=[];
 desc=str2num(get(handles.edit4,'String'));
 ite=str2num(get(handles.edit5,'String'));
-
+trans 
 
 
 if pop==2
@@ -813,10 +820,11 @@ elseif pop==5
 
     
 elseif pop==6
-   [nstr,vstr,strpol,pol]=mejoramiento_desc();
-    imp_res=strcat('La política óptima se obtuvo en un número finito de ',{' '}, nstr,{' '},'iteraciones,',...
-        'los Vi calculados  son',{char(10)}, vstr,... 
-        {char(10)},'y la politca optima es',{' '},strpol,', o bien',{' '},text_pol(pol));
+    [nstr,vstr,strpol,pol]=aprox_sucesivas();
+    imp_res=strcat('La aproximación a la política óptima se obtuvo con las ',...
+        {' '},num2str(ite),' iteraciones dadas por el usuario,',...
+        'los Vi (costo descontado total)  son',{char(10)}, vstr,...     
+        'Y la aproximación a  la politca optima es',{' '},strpol,', o bien',{' '},text_pol(pol));
     handles.most=imp_res;
     guidata(hObject,handles);
     
@@ -827,7 +835,6 @@ elseif pop==6
     set(handles.popupmenu,'Visible','On');
     set(handles.pushbutton3,'Visible','On');
     set(handles.pushbutton4,'Visible','On');
-      
     
 end
 
